@@ -1,6 +1,12 @@
+// App.js
 import React from 'react';
-import MenuScreen from './src/screens/MenuScreen'; // Kendi ekranımızı çağırıyoruz
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
-  return <MenuScreen />;
+  return (
+    <NavigationContainer>
+      <AppNavigator />
+    </NavigationContainer>
+  );
 }
