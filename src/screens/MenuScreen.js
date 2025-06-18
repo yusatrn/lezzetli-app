@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, TextInput } from 'react-native';
 import useCartStore from '../state/cartStore';
+import useFavoritesStore from '../state/favoritesStore';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -15,6 +16,7 @@ const MenuScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tümü');
   const addToCart = useCartStore((state) => state.addToCart);
+  const { toggleFavorite, isFavorite, loadFavorites } = useFavoritesStore();
 
   const categories = ['Tümü', 'Ana Yemek', 'İçecek', 'Tatlı', 'Aperitif'];
 
@@ -38,10 +40,10 @@ const MenuScreen = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-  // useEffect hook'u, component ilk açıldığında sadece bir kez çalışır
+  };  // useEffect hook'u, component ilk açıldığında sadece bir kez çalışır
   useEffect(() => {
     fetchMenu();
+    loadFavorites(); // Favorileri yükle
   }, []); // Boş dizi, bu fonksiyonun sadece bir kez çalışmasını sağlar
 
   // Arama ve filtreleme için useEffect
@@ -63,10 +65,15 @@ const MenuScreen = () => {
 
     setFilteredMenu(filtered);
   }, [menu, searchQuery, selectedCategory]);
-
   const handleAddToCart = (item) => {
     addToCart(item);
     Alert.alert('Başarılı!', `${item.name} sepete eklendi.`);
+  };
+
+  const handleToggleFavorite = (item) => {
+    toggleFavorite(item);
+    const message = isFavorite(item.id) ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi';
+    Alert.alert('', `${item.name} ${message}.`);
   };
 
   const onRefresh = () => {
@@ -115,20 +122,31 @@ const MenuScreen = () => {
         {category}
       </Text>
     </TouchableOpacity>
-  );
-  const renderMenuItem = ({ item }) => (
+  );  const renderMenuItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.itemDescription}>{item.description}</Text>
         <Text style={styles.itemPrice}>{item.price}</Text>
       </View>
-      <TouchableOpacity 
-        style={styles.addButton} 
-        onPress={() => handleAddToCart(item)}
-      >
-        <Text style={styles.addButtonText}>Sepete Ekle</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity 
+          style={styles.favoriteButton} 
+          onPress={() => handleToggleFavorite(item)}
+        >
+          <Ionicons 
+            name={isFavorite(item.id) ? "heart" : "heart-outline"} 
+            size={24} 
+            color={isFavorite(item.id) ? "red" : "#666"} 
+          />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.addButton} 
+          onPress={() => handleAddToCart(item)}
+        >
+          <Text style={styles.addButtonText}>Sepete Ekle</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
   return (
@@ -278,9 +296,17 @@ const styles = StyleSheet.create({
         elevation: 3, 
         flexDirection: 'row', 
         alignItems: 'center' 
-    },
-    itemInfo: {
+    },    itemInfo: {
         flex: 1,
+    },
+    buttonsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 12
+    },
+    favoriteButton: {
+        padding: 8,
+        marginRight: 8
     },
     itemName: { 
         fontSize: 18, 

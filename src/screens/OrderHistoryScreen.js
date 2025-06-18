@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { db } from '../../firebaseConfig';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
 import useUserStore from '../state/userStore';/screens/OrderHistoryScreen.js
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
@@ -49,10 +49,36 @@ const OrderHistoryScreen = ({ navigation }) => {
       setRefreshing(false);
     }
   };
-
   useEffect(() => {
-    fetchOrders();
-  }, [user]); // user bilgisi değiştiğinde (örn: ilk yüklendiğinde) bu fonksiyon çalışır
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    // Real-time listener oluştur
+    const q = query(
+      collection(db, "orders"), 
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const userOrders = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setOrders(userOrders);
+      setLoading(false);
+    }, (error) => {
+      console.error("Siparişler dinlenirken hata: ", error);
+      setLoading(false);
+    });
+
+    // Component unmount olduğunda listener'ı temizle
+    return () => unsubscribe();
+  }, [user]);
 
   const onRefresh = () => {
     fetchOrders(true);

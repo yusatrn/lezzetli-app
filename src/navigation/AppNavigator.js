@@ -14,6 +14,7 @@ import SignUpScreen from '../screens/SignUpScreen';
 import MenuScreen from '../screens/MenuScreen';
 import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
 import { ActivityIndicator, View } from 'react-native';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
@@ -44,6 +45,8 @@ function MainTabs() {
 
           if (route.name === 'Menu') {
             iconName = focused ? 'restaurant' : 'restaurant-outline';
+          } else if (route.name === 'Favoriler') {
+            iconName = focused ? 'heart' : 'heart-outline';
           } else if (route.name === 'Sepet') {
             iconName = focused ? 'basket' : 'basket-outline';
           } else if (route.name === 'Profil') {
@@ -62,6 +65,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Menu" component={MenuScreen} options={{headerShown: false, title: 'Menü'}} />
+      <Tab.Screen name="Favoriler" component={FavoritesScreen} options={{headerShown: false, title: 'Favoriler'}} />
       <Tab.Screen name="Sepet" component={CartScreen} options={{title: 'Sepet'}} />
       {/* Profil sekmesi artık bir ekranı değil, bir Stack'i çağıracak */}
       <Tab.Screen 
