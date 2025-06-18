@@ -7,14 +7,33 @@ import { auth } from '../../firebaseConfig';
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (email && password) {
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        Alert.alert('Giriş Hatası', 'E-posta veya şifre hatalı.');
+    if (!email || !password) {
+      Alert.alert('Hata', 'Lütfen e-posta ve şifrenizi girin.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      let errorMessage = 'Giriş yaparken bir hata oluştu.';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Şifre hatalı.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Geçersiz e-posta adresi.';
+      } else if (error.code === 'auth/invalid-credential') {
+        errorMessage = 'E-posta veya şifre hatalı.';
       }
+      
+      Alert.alert('Giriş Hatası', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -25,8 +44,7 @@ const LoginScreen = ({ navigation }) => {
         style={styles.container}
       >
         <Text style={styles.title}>Lezzetli App</Text>
-        <Text style={styles.subtitle}>Giriş Yap</Text>
-        <TextInput
+        <Text style={styles.subtitle}>Giriş Yap</Text>        <TextInput
           style={styles.input}
           placeholder="E-posta Adresiniz"
           value={email}
@@ -34,6 +52,7 @@ const LoginScreen = ({ navigation }) => {
           keyboardType="email-address"
           autoCapitalize="none"
           placeholderTextColor="#888"
+          editable={!loading}
         />
         <TextInput
           style={styles.input}
@@ -42,12 +61,24 @@ const LoginScreen = ({ navigation }) => {
           onChangeText={setPassword}
           secureTextEntry
           placeholderTextColor="#888"
+          editable={!loading}
         />
-        <TouchableOpacity style={styles.buttonContainer} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Giriş Yap</Text>
+        <TouchableOpacity 
+          style={[styles.buttonContainer, loading && styles.buttonDisabled]} 
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-          <Text style={styles.linkText}>Hesabın yok mu? Kayıt Ol</Text>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('SignUp')}
+          disabled={loading}
+        >
+          <Text style={[styles.linkText, loading && styles.linkDisabled]}>
+            Hesabın yok mu? Kayıt Ol
+          </Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -87,13 +118,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#ddd',
-  },
-  buttonContainer: {
+  },  buttonContainer: {
     backgroundColor: 'tomato',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
   },
   buttonText: {
     color: 'white',
@@ -105,6 +138,9 @@ const styles = StyleSheet.create({
     textAlign: 'center', 
     marginTop: 20,
     fontSize: 16,
+  },
+  linkDisabled: {
+    color: '#ccc',
   },
 });
 

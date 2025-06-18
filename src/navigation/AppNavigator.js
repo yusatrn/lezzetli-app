@@ -33,14 +33,37 @@ function ProfileStackNavigator() {
 
 function MainTabs() {
   return (
-    <Tab.Navigator /* ... screenOptions aynı kalabilir ... */ >
-      <Tab.Screen name="Menu" component={MenuScreen} options={{headerShown: false}} />
-      <Tab.Screen name="Sepet" component={CartScreen} />
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Menu') {
+            iconName = focused ? 'restaurant' : 'restaurant-outline';
+          } else if (route.name === 'Sepet') {
+            iconName = focused ? 'basket' : 'basket-outline';
+          } else if (route.name === 'Profil') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: 'tomato',
+        tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          backgroundColor: 'white',
+          borderTopWidth: 1,
+          borderTopColor: '#e0e0e0',
+        },
+      })}
+    >
+      <Tab.Screen name="Menu" component={MenuScreen} options={{headerShown: false, title: 'Menü'}} />
+      <Tab.Screen name="Sepet" component={CartScreen} options={{title: 'Sepet'}} />
       {/* Profil sekmesi artık bir ekranı değil, bir Stack'i çağıracak */}
       <Tab.Screen 
         name="Profil" 
         component={ProfileStackNavigator} 
-        options={{ headerShown: false }} // Stack'in kendi başlığı olacağı için bunu kapattık
+        options={{ headerShown: false, title: 'Profil' }} // Stack'in kendi başlığı olacağı için bunu kapattık
       />
     </Tab.Navigator>
   );
