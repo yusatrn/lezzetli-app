@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 import useUserStore from '../state/userStore';
@@ -15,7 +15,7 @@ import MenuScreen from '../screens/MenuScreen';
 import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Text } from 'react-native';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 import OrderDetailScreen from '../screens/OrderDetailScreen';
 import OrderCancelScreen from '../screens/OrderCancelScreen';
@@ -41,19 +41,39 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+          try {
+            let iconName;
 
-          if (route.name === 'Menu') {
-            iconName = focused ? 'restaurant' : 'restaurant-outline';
-          } else if (route.name === 'Favoriler') {
-            iconName = focused ? 'heart' : 'heart-outline';
-          } else if (route.name === 'Sepet') {
-            iconName = focused ? 'basket' : 'basket-outline';
-          } else if (route.name === 'Profil') {
-            iconName = focused ? 'person' : 'person-outline';
+            if (route.name === 'Menu') {
+              iconName = focused ? 'restaurant' : 'restaurant-outline';
+            } else if (route.name === 'Favoriler') {
+              iconName = focused ? 'heart' : 'heart-outline';
+            } else if (route.name === 'Sepet') {
+              iconName = focused ? 'basket' : 'basket-outline';
+            } else if (route.name === 'Profil') {
+              iconName = focused ? 'person' : 'person-outline';
+            }
+
+            return <Ionicons name={iconName} size={size} color={color} />;
+          } catch (error) {
+            // Yedek emoji ikonlar
+            let emoji;
+            if (route.name === 'Menu') {
+              emoji = '🍽️';
+            } else if (route.name === 'Favoriler') {
+              emoji = focused ? '❤️' : '🤍';
+            } else if (route.name === 'Sepet') {
+              emoji = '🛒';
+            } else if (route.name === 'Profil') {
+              emoji = '👤';
+            }
+            
+            return (
+              <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: size * 0.8 }}>{emoji}</Text>
+              </View>
+            );
           }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: 'tomato',
         tabBarInactiveTintColor: 'gray',

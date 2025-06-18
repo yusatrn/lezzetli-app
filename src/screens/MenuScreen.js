@@ -5,7 +5,39 @@ import useCartStore from '../state/cartStore';
 import useFavoritesStore from '../state/favoritesStore';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from '@expo/vector-icons';
+
+// İkon bileşeni - yedek emoji desteği ile
+const IconComponent = ({ name, size, color, style }) => {
+  try {
+    return <Ionicons name={name} size={size} color={color} style={style} />;
+  } catch (error) {
+    // Yedek emoji ikonlar
+    let emoji;
+    switch (name) {
+      case 'search':
+        emoji = '🔍';
+        break;
+      case 'close-circle':
+        emoji = '❌';
+        break;
+      case 'heart':
+        emoji = '❤️';
+        break;
+      case 'heart-outline':
+        emoji = '🤍';
+        break;
+      default:
+        emoji = '⭐';
+    }
+    
+    return (
+      <Text style={[{ fontSize: size * 0.8 }, style]}>
+        {emoji}
+      </Text>
+    );
+  }
+};
 
 const MenuScreen = () => {
   const [menu, setMenu] = useState([]);
@@ -129,12 +161,11 @@ const MenuScreen = () => {
         <Text style={styles.itemDescription}>{item.description}</Text>
         <Text style={styles.itemPrice}>{item.price}</Text>
       </View>
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity 
+      <View style={styles.buttonsContainer}>        <TouchableOpacity 
           style={styles.favoriteButton} 
           onPress={() => handleToggleFavorite(item)}
         >
-          <Ionicons 
+          <IconComponent 
             name={isFavorite(item.id) ? "heart" : "heart-outline"} 
             size={24} 
             color={isFavorite(item.id) ? "red" : "#666"} 
@@ -152,11 +183,10 @@ const MenuScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Lezzetli Menümüz</Text>
-      
-      {/* Arama Çubuğu */}
+        {/* Arama Çubuğu */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <IconComponent name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Yemek ara..."
@@ -166,7 +196,7 @@ const MenuScreen = () => {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color="#666" />
+              <IconComponent name="close-circle" size={20} color="#666" />
             </TouchableOpacity>
           )}
         </View>
