@@ -16,6 +16,8 @@ import CartScreen from '../screens/CartScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { ActivityIndicator, View } from 'react-native';
 import OrderHistoryScreen from '../screens/OrderHistoryScreen';
+import OrderDetailScreen from '../screens/OrderDetailScreen';
+import OrderCancelScreen from '../screens/OrderCancelScreen';
 
 const ProfileStack = createNativeStackNavigator();
 const Stack = createNativeStackNavigator();
@@ -27,6 +29,8 @@ function ProfileStackNavigator() {
     <ProfileStack.Navigator>
       <ProfileStack.Screen name="ProfilePage" component={ProfileScreen} options={{ title: 'Profil' }} />
       <ProfileStack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ title: 'Sipariş Geçmişim' }} />
+      <ProfileStack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: 'Sipariş Detayı' }} />
+      <ProfileStack.Screen name="OrderCancel" component={OrderCancelScreen} options={{ title: 'Sipariş İptali' }} />
     </ProfileStack.Navigator>
   );
 }

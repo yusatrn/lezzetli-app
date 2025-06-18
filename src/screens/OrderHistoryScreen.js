@@ -1,11 +1,16 @@
 // src/screens/OrderHistoryScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { db } from '../../firebaseConfig';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import useUserStore from '../state/userStore';/screens/OrderHistoryScreen.js
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { db } from '../../firebaseConfig';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import useUserStore from '../state/userStore';
 
-const OrderHistoryScreen = () => {
+const OrderHistoryScreen = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -91,7 +96,8 @@ const OrderHistoryScreen = () => {
       );
   }
   const renderOrderItem = ({ item }) => (
-    <View style={styles.orderCard}>
+    <TouchableOpacity onPress={() => navigation.navigate('OrderDetail', { order: item })} activeOpacity={0.8}>
+      <View style={styles.orderCard}>
         <View style={styles.orderHeader}>
           <Text style={styles.orderDate}>
               {item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleDateString('tr-TR', {
@@ -106,7 +112,6 @@ const OrderHistoryScreen = () => {
             <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
-        
         <View style={styles.itemList}>
             {item.items.map((product, index) => (
                 <Text key={`${product.id}-${index}`} style={styles.productText}>
@@ -114,11 +119,11 @@ const OrderHistoryScreen = () => {
                 </Text>
             ))}
         </View>
-        
         <View style={styles.orderFooter}>
           <Text style={styles.orderTotal}>Toplam: {item.totalPrice.toFixed(2)} TL</Text>
         </View>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
