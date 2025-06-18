@@ -1,35 +1,95 @@
 // src/navigation/AppNavigator.js
-import React from 'react';
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../firebaseConfig';
+import useUserStore from '../state/userStore';
+
+// Ekranlar
+import LoginScreen from '../screens/LoginScreen';
+import SignUpScreen from '../screens/SignUpScreen';
 import MenuScreen from '../screens/MenuScreen';
 import CartScreen from '../screens/CartScreen';
-import Ionicons from '@expo/vector-icons/Ionicons'; // İkonlar için
+import ProfileScreen from '../screens/ProfileScreen';
+import { ActivityIndicator, View } from 'react-native';
+import OrderHistoryScreen from '../screens/OrderHistoryScreen';
 
+const ProfileStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const AppNavigator = () => {
+
+function ProfileStackNavigator() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+    <ProfileStack.Navigator>
+      <ProfileStack.Screen name="ProfilePage" component={ProfileScreen} options={{ title: 'Profil' }} />
+      <ProfileStack.Screen name="OrderHistory" component={OrderHistoryScreen} options={{ title: 'Sipariş Geçmişim' }} />
+    </ProfileStack.Navigator>
+  );
+}
 
-          if (route.name === 'Menu') {
-            iconName = focused ? 'restaurant' : 'restaurant-outline';
-          } else if (route.name === 'Sepet') {
-            iconName = focused ? 'cart' : 'cart-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: 'tomato',
-        tabBarInactiveTintColor: 'gray',
-        headerShown: false, // Şimdilik her ekranın kendi başlığı olsun istemiyoruz
-      })}
-    >
-      <Tab.Screen name="Menu" component={MenuScreen} />
+function MainTabs() {
+  return (
+    <Tab.Navigator /* ... screenOptions aynı kalabilir ... */ >
+      <Tab.Screen name="Menu" component={MenuScreen} options={{headerShown: false}} />
       <Tab.Screen name="Sepet" component={CartScreen} />
+      {/* Profil sekmesi artık bir ekranı değil, bir Stack'i çağıracak */}
+      <Tab.Screen 
+        name="Profil" 
+        component={ProfileStackNavigator} 
+        options={{ headerShown: false }} // Stack'in kendi başlığı olacağı için bunu kapattık
+      />
     </Tab.Navigator>
+  );
+}
+
+const AppNavigator = () => {
+  // userStore'dan kullanıcı ve yüklenme durumunu alıyoruz
+  const { user, isLoading, setUser, clearUser } = useUserStore();
+
+  // useEffect ile uygulama ilk açıldığında Firebase'in auth durumunu dinliyoruz
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Kullanıcı giriş yapmışsa (veya önceden yapmışsa)
+        setUser({ uid: firebaseUser.uid, email: firebaseUser.email });
+      } else {
+        // Kullanıcı giriş yapmamışsa
+        clearUser();
+      }
+    });
+
+    // component kapandığında dinleyiciyi kaldır
+    return () => unsubscribe();
+  }, []);
+
+  // İlk kontrol yapılırken yükleme ekranı göster
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {user ? (
+          // user state'i doluysa ana uygulama ekranlarını göster
+          <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+        ) : (
+          // user state'i boşsa giriş/kayıt ekranlarını göster
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} options={{ title: 'Kayıt Ol' }} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
 

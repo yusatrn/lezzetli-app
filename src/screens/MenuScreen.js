@@ -1,31 +1,50 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
-
-// 1. Adım: Sahte menü verimizi oluşturalım
-const DUMMY_MENU = [
-  { id: '1', name: 'Mercimek Çorbası', description: 'Günün taze çorbası', price: '45 TL' },
-  { id: '2', name: 'Adana Kebap', description: 'Acılı, bol salatasıyla', price: '180 TL' },
-  { id: '3', name: 'İskender', description: 'Tereyağlı, yoğurtlu', price: '220 TL' },
-  { id: '4', name: 'Künefe', description: 'Sıcak, peynirli şerbetli tatlı', price: '95 TL' },
-];
+// src/screens/MenuScreen.js
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, Button, ActivityIndicator } from 'react-native';
+import useCartStore from '../state/cartStore';
+import { db } from '../../firebaseConfig'; // Firebase bağlantımızı import ediyoruz
+import { collection, getDocs } from 'firebase/firestore';
 
 const MenuScreen = () => {
-  // 2. Adım: Verimizi component'in state'ine (hafızasına) alalım
-  const [menu, setMenu] = useState(DUMMY_MENU);
+  const [menu, setMenu] = useState([]); // Başlangıçta menü boş
+  const [loading, setLoading] = useState(true); // Yüklenme durumu için
+  const addToCart = useCartStore((state) => state.addToCart);
 
-  // 3. Adım: Her bir menü öğesinin nasıl görüneceğini belirleyen bir fonksiyon
+  // useEffect hook'u, component ilk açıldığında sadece bir kez çalışır
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "menu"));
+        const menuList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setMenu(menuList);
+      } catch (error) {
+        console.error("Veri çekerken hata oluştu: ", error);
+      } finally {
+        setLoading(false); // Yükleme bitti
+      }
+    };
+
+    fetchMenu();
+  }, []); // Boş dizi, bu fonksiyonun sadece bir kez çalışmasını sağlar
+
+  if (loading) {
+    return <ActivityIndicator size="large" style={styles.loader} />;
+  }
+
   const renderMenuItem = ({ item }) => (
     <View style={styles.card}>
-      <Text style={styles.itemName}>{item.name}</Text>
-      <Text style={styles.itemDescription}>{item.description}</Text>
-      <Text style={styles.itemPrice}>{item.price}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.itemDescription}>{item.description}</Text>
+        <Text style={styles.itemPrice}>{item.price}</Text>
+      </View>
+      <Button title="Sepete Ekle" onPress={() => addToCart(item)} />
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Lezzetli Menümüz</Text>
-      {/* 4. Adım: FlatList ile verilerimizi ekrana basalım */}
       <FlatList
         data={menu}
         renderItem={renderMenuItem}
@@ -36,45 +55,14 @@ const MenuScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5', // Arka plan rengi
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  // Kart stilleri
-  card: {
-    backgroundColor: 'white',
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  itemDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  itemPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2e8b57', // Yeşil renk
-    marginTop: 10,
-    textAlign: 'right',
-  },
+    container: { flex: 1, backgroundColor: '#f5f5f5' },
+    title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginVertical: 20 },
+    card: { backgroundColor: 'white', padding: 20, marginVertical: 8, marginHorizontal: 16, borderRadius: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3, flexDirection: 'row', alignItems: 'center' },
+    itemName: { fontSize: 18, fontWeight: '600' },
+    itemDescription: { fontSize: 14, color: '#666', marginTop: 4 },
+    itemPrice: { fontSize: 16, fontWeight: 'bold', color: '#2e8b57', marginTop: 10 },
+    loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
+
 
 export default MenuScreen;
