@@ -3,11 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { db } from '../../firebaseConfig';
 import { collection, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
-import useUserStore from '../state/userStore';/screens/OrderHistoryScreen.js
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
-import { db } from '../../firebaseConfig';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import useUserStore from '../state/userStore';
 
 const OrderHistoryScreen = ({ navigation }) => {
