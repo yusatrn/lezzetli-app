@@ -1,18 +1,20 @@
 // src/state/favoritesStore.js
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const useFavoritesStore = create((set, get) => ({
   favorites: [],
   isLoading: false,
 
-  // Favorileri AsyncStorage'dan yükle
+  // Favorileri localStorage'dan yükle (web için) 
   loadFavorites: async () => {
     set({ isLoading: true });
     try {
-      const savedFavorites = await AsyncStorage.getItem('favorites');
-      if (savedFavorites) {
-        set({ favorites: JSON.parse(savedFavorites) });
+      if (typeof window !== 'undefined') {
+        // Web platformu için localStorage kullan
+        const savedFavorites = localStorage.getItem('favorites');
+        if (savedFavorites) {
+          set({ favorites: JSON.parse(savedFavorites) });
+        }
       }
     } catch (error) {
       console.error('Favoriler yüklenirken hata:', error);
@@ -21,10 +23,12 @@ const useFavoritesStore = create((set, get) => ({
     }
   },
 
-  // Favorileri AsyncStorage'a kaydet
+  // Favorileri localStorage'a kaydet
   saveFavorites: async (favorites) => {
     try {
-      await AsyncStorage.setItem('favorites', JSON.stringify(favorites));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+      }
     } catch (error) {
       console.error('Favoriler kaydedilirken hata:', error);
     }
@@ -56,7 +60,9 @@ const useFavoritesStore = create((set, get) => ({
   clearFavorites: async () => {
     set({ favorites: [] });
     try {
-      await AsyncStorage.removeItem('favorites');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('favorites');
+      }
     } catch (error) {
       console.error('Favoriler temizlenirken hata:', error);
     }
